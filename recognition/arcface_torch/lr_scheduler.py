@@ -41,6 +41,36 @@ class PolynomialLRWarmup(_LRScheduler):
                 for base_lr in self.base_lrs
             ]
 
+class CosineAnnealingWarmupLR(_LRScheduler):
+    def __init__(self, optimizer, warmup_iters, total_iters, last_epoch=-1, verbose=False):
+        self.warmup_iters = warmup_iters
+        self.total_iters = total_iters
+        super().__init__(optimizer, last_epoch=last_epoch, verbose=verbose)
+
+    def get_lr(self):
+        if not self._get_lr_called_within_step:
+            warnings.warn("To get the last learning rate computed by the scheduler, "
+                          "please use `get_last_lr()`.", UserWarning)
+
+        if self.last_epoch == 0 or self.last_epoch > self.total_iters:
+            return [group["lr"] for group in self.optimizer.param_groups]
+
+        if self.last_epoch <= self.warmup_iters:
+            # Linear warmup
+            return [base_lr * self.last_epoch / self.warmup_iters for base_lr in self.base_lrs]
+        else:
+            # Cosine annealing decay
+            progress = float(self.last_epoch - self.warmup_iters) / float(max(1, self.total_iters - self.warmup_iters))
+            return [base_lr * (1 + math.cos(math.pi * progress)) / 2
+                    for base_lr in self.base_lrs]
+
+    def _get_closed_form_lr(self):
+        if self.last_epoch <= self.warmup_iters:
+            return [base_lr * self.last_epoch / self.warmup_iters for base_lr in self.base_lrs]
+        else:
+            progress = float(self.last_epoch - self.warmup_iters) / float(max(1, self.total_iters - self.warmup_iters))
+            return [base_lr * (1 + math.cos(math.pi * progress)) / 2
+                    for base_lr in self.base_lrs]
     
 if __name__ == "__main__":
 
