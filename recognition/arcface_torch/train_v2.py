@@ -8,7 +8,7 @@ import torch
 from backbones import get_model
 from dataset import get_dataloader
 from losses import CombinedMarginLoss
-from lr_scheduler import PolynomialLRWarmup
+from lr_scheduler import PolynomialLRWarmup, CosineAnnealingWarmupLR
 from partial_fc_v2 import PartialFC_V2
 from torch import distributed
 from torch.utils.data import DataLoader
